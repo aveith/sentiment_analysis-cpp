@@ -1,0 +1,52 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Network is missing"
+	exit
+else
+#	echo "Network: $4"
+	NETWORK=$4
+fi
+
+if [ ! "$5" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $5"
+	GATEWAY_ROUTING=$5
+fi
+
+
+for MACHINE in $GATEWAY $GATEWAY_ROUTING; do
+	#ssh $MACHINE "sudo tc qdisc del dev eth1 root"
+	#ssh $MACHINE "sudo tc qdisc add dev eth1 root handle 1:0 netem delay 0.001ms"
+	#ssh $MACHINE "sudo tc qdisc add dev eth1 parent 1:0 handle 10: tbf rate $(($NETWORK/100))mbit latency 1000us burst 100kb" #loss 0.003%
+	ssh $MACHINE "sudo tc qdisc del dev eth2 root"
+	ssh $MACHINE "sudo tc qdisc add dev eth2 handle 1: root htb default 11"
+	ssh $MACHINE "sudo tc class add dev eth2 parent 1: classid 1:1 htb rate $(($NETWORK))kbps"
+	ssh $MACHINE "sudo tc class add dev eth2 parent 1:1 classid 1:11 htb rate $(($NETWORK))kbps"
+done

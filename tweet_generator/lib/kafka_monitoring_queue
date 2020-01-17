@@ -1,0 +1,47 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	#echo "Cloud IP: $1"
+	CLOUD=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Time of execution is missing"
+	exit
+else
+#	echo "Time of execution: $2"
+	TIME=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Queue 1 is missing"
+	exit
+else
+	##echo "Result folder: $3"
+	QUEUE1=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Queue 2 is missing"
+	exit
+else
+	##echo "Result folder: $4"
+	QUEUE2=$4
+fi
+
+FILE_KAFKA="$FOLDER_RESULTS""kafka-""$QUEUE""_""$CLOUD"'.log'
+
+i=0
+END=$TIME
+while [ $i -le $END ]; do
+	NAME=$(awk 'BEGIN {srand(); print srand()}')
+	VALUE=$(~/kafka_2.10-0.10.2.0/bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list 10.0.1.2:9092 --topic $QUEUE1)
+	VALUE2=$(~/kafka_2.10-0.10.2.0/bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list 10.0.1.2:9092 --topic $QUEUE2)
+	echo $NAME ";" $VALUE ";" $VALUE2
+
+	sleep 1
+        i=$(($i+1))
+done

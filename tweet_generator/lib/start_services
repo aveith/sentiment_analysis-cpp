@@ -1,0 +1,78 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	##echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	##echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	##echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Time of monitoring"
+	exit
+else
+	##echo "Cloud IP: $4"
+	TIME=$4
+fi
+
+if [ ! "$5" ]; then
+	echo "Result folder is missing"
+	exit
+else
+	##echo "Result folder: 5"
+	FOLDER_RESULTS=$5
+fi
+
+
+echo
+echo "Starting main services (KAFKA, MOSQUITTO and FLINK)"
+
+echo
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/zookeeper-server-start.sh -daemon ./kafka_2.10-0.10.2.0/config/zookeeper.properties'
+
+sleep 10
+
+echo
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-server-start.sh -daemon ./kafka_2.10-0.10.2.0/config/server.properties'
+
+sleep 5
+
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-topics.sh --create --zookeeper 10.0.1.2:2181 --replication-factor 1 --partitions 16 --topic mqtt'
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-topics.sh --create --zookeeper 10.0.1.2:2181 --replication-factor 1 --partitions 4 --topic sink-kafka'
+
+echo
+ssh $CLOUD './flink-1.2.0/bin/start-cluster.sh'
+
+echo
+ssh $GATEWAY 'sudo mosquitto -d -c /etc/mosquitto/mosquitto.conf'
+
+QUEUE1="mqtt"
+QUEUE2="sink-kafka"
+
+echo
+echo "Starting monitoring Queues - KAFKA"
+FILE_OUT1="$FOLDER_RESULTS""kafka-mqtt.log"
+FILE_OUT3="$FOLDER_RESULTS""mosquitto-mqtt.log"
+
+ssh $CLOUD "sudo sh ~/scripts/lib/kafka_monitoring_queue $CLOUD $TIME $QUEUE1 $QUEUE2 >> $FILE_OUT1 &"
+
+echo
+echo "Starting monitoring Queues - MOSQUITTO"
+ssh $GATEWAY "sudo sh ~/scripts/lib/mosquitto_monitoring_queue $FILE_OUT3 >> ~/out.err &"

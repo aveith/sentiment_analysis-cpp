@@ -1,0 +1,79 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	#echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	#echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	#echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $4"
+	GATEWAY_ROUTING=$4
+fi
+
+if [ "$5" ]; then	
+	SLAVE1_FLINK=$5
+fi
+
+echo
+echo "Killing all process to put the machines in the initial state"
+for MACHINE in $SOURCE $GATEWAY $CLOUD $GATEWAY_ROUTING $SLAVE1_FLINK; do
+	ssh $MACHINE 'sudo pkill -f resource_monitor'
+	ssh $MACHINE 'sudo pkill -f python'
+	ssh $MACHINE 'sudo pkill -f java'
+done
+
+
+ssh $SOURCE 'sudo pkill -f publish_tweets'
+
+ssh $GATEWAY 'sudo pkill -f kafka_monitoring_queue'
+
+ssh $CLOUD 'sudo pkill -f mosquitto_monitoring_queue'
+ssh $CLOUD 'sudo pkill -f kafka'
+ssh $CLOUD 'sudo pkill -f flink'
+ssh $CLOUD 'sudo pkill -f QuorumPeerMain'
+ssh $CLOUD 'sudo pkill -f JobManager'
+
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/zookeeper-server-start.sh -daemon ./kafka_2.10-0.10.2.0/config/zookeeper.properties'
+sleep 10
+
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-server-start.sh -daemon ./kafka_2.10-0.10.2.0/config/server.properties'
+
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic mqtt'
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic sink-kafka'
+ssh $CLOUD './flink-1.2.0/bin/stop-cluster.sh'
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/kafka-server-stop.sh'
+ssh $CLOUD './kafka_2.10-0.10.2.0/bin/zookeeper-server-stop.sh' 
+
+ssh $SLAVE1_FLINK 'sudo pkill -f flink'
+ssh $SLAVE1_FLINK 'sudo pkill -f JobManager'
+
+ssh $CLOUD 'rm kafka_2.10-0.10.2.0/logs/*'
+
+ssh $SLAVE1_FLINK 'rm flink-1.2.0/log/*'
+ssh $CLOUD 'rm flink-1.2.0/log/*'
+
+ssh $GATEWAY 'sudo service mosquitto stop'
+ssh $GATEWAY 'sudo pkill -f mosquitto'
+ssh $GATEWAY 'sudo rm /var/log/mosquitto/mosquitto.log'

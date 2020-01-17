@@ -1,0 +1,157 @@
+#!/bin/sh
+
+TIME=$(awk 'BEGIN {srand(); print srand()}')
+echo "Test started at $TIME"
+
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Time of execution is missing"
+	exit
+else
+#	echo "Time of execution: $4"
+	TIME=$4
+fi
+
+if [ ! "$5" ]; then
+	echo "Network bandwidth is missing (kbps)"
+	exit
+else
+#	echo "Network bandwidth: $5"
+	NETWORK=$5
+fi
+
+if [ ! "$6" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $6"
+	GATEWAY_ROUTING=$6
+fi
+
+if [ "$7" ]; then	
+	SLAVE1_FLINK=$7
+fi
+
+echo
+
+TOTAL_TIME=$(($TIME+150))
+
+NAME=$(awk 'BEGIN {srand(); print srand()}')
+
+for MACHINE in $SOURCE $GATEWAY $CLOUD $GATEWAY_ROUTING $SLAVE1_FLINK; do
+	echo
+	echo
+	echo "Setting up: $MACHINE"
+
+	echo
+	echo " --> Clearing rules from eth1 interface"
+	ssh $MACHINE "sudo wondershaper clear eth1"
+	ssh $MACHINE "sudo tc qdisc del dev eth1 root"
+	ssh $MACHINE "sudo wondershaper clear eth2"
+	ssh $MACHINE "sudo tc qdisc del dev eth2 root"
+	
+	#if [ "$MACHINE" = "$GATEWAY" ] || [ "$MACHINE" = "$CLOUD" ]; then
+	#	echo
+	#	echo " --> Shaping download and upload ($NETWORK Kbps)"
+	#	ssh $MACHINE "sudo wondershaper eth1 $NETWORK $NETWORK"
+	#fi
+	
+	echo
+	echo " --> Synchronizing clock"
+	ssh $MACHINE "sudo ntpdate -s time.nist.gov"
+
+	echo
+	echo " --> Deleting older scripts"
+	ssh $MACHINE "rm -rf scripts/ scripts.tar.gz *.log 148*"
+	
+	echo
+	echo " --> Copying scrips"	
+	scp ~/scripts.tar.gz $MACHINE:~/
+
+	echo
+	echo " --> Refreshing scripts"	
+	ssh $MACHINE "tar -xzvf scripts.tar.gz"
+
+	echo
+	echo " --> Creating results folder"	
+	ssh $MACHINE "mkdir ~/$NAME"
+done 
+
+echo
+echo " --> Setting up eth2 interface"
+sh ./lib/setup_network $SOURCE $GATEWAY $CLOUD $NETWORK $GATEWAY_ROUTING
+
+echo
+sh ./lib/stop_services $SOURCE $GATEWAY $CLOUD $GATEWAY_ROUTING $SLAVE1_FLINK
+
+
+echo "All the results will be save in the folder $NAME at HOME_DIRECTORY"
+
+i=0
+END=5
+while [ $i -le $END ]; do
+	NEW_DIR="~/$NAME/$i/"
+
+	ssh $SOURCE "mkdir $NEW_DIR"
+	ssh $GATEWAY "mkdir $NEW_DIR"
+	ssh $CLOUD "mkdir $NEW_DIR"
+	ssh $SLAVE1_FLINK "mkdir $NEW_DIR"
+	ssh $GATEWAY_ROUTING "mkdir $NEW_DIR"
+
+       
+	echo
+        echo "Starting execution with $i operators at Edge"
+
+	echo
+	sh ./lib/start_monitoring $SOURCE $GATEWAY $CLOUD $GATEWAY_ROUTING $SLAVE1_FLINK
+
+	echo
+	sh ./lib/start_services $SOURCE $GATEWAY $CLOUD $TIME $NEW_DIR 
+
+
+	echo
+	sh ./lib/start_tests $SOURCE $GATEWAY $CLOUD $i $NEW_DIR 
+
+	echo	
+	echo "Sending Tweets with $i Edge Operations"
+
+	sleep $TOTAL_TIME	
+
+	echo
+	sh ./lib/copy_results_files $SOURCE $GATEWAY $CLOUD $NEW_DIR $GATEWAY_ROUTING $SLAVE1_FLINK
+
+	echo
+	sh ./lib/stop_services $SOURCE $GATEWAY $CLOUD $GATEWAY_ROUTING $SLAVE1_FLINK
+
+        i=$(($i+1))
+done
+
+echo
+sh ./lib/mov_logs $SOURCE $GATEWAY $CLOUD $NAME $NETWORK $GATEWAY_ROUTING $SLAVE1_FLINK
+
+echo
+TIME=$(awk 'BEGIN {srand(); print srand()}')
+echo "Tests were concluded at $TIME"

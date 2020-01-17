@@ -1,0 +1,4 @@
+**/target/*
+**/local-maven-repo/*
+**/.idea/*
+**/sentiment-analysis.iml

@@ -1,0 +1,72 @@
+#!/bin/sh
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	##echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	##echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	##echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "The number of process in edge is missing"
+	exit
+else
+	##echo "Process in Edge: $4"
+	PROCESS=$4
+fi
+
+if [ ! "$5" ]; then
+	echo "Result folder is missing"
+	exit
+else
+	##echo "Result folder: $5"
+	FOLDER_RESULTS=$5
+fi
+
+FILE_GATEWAY="$FOLDER_RESULTS"'edgent-'"$GATEWAY"'.log'
+FILE_CLOUD="$FOLDER_RESULTS"'flink-'"$CLOUD"'.log'
+
+echo
+echo "Starting execution of tests"
+
+sleep 5
+
+echo
+echo "Starting Flink Application"
+if [ $PROCESS -ne 5 ]; then
+	ssh $CLOUD "./flink-1.2.0/bin/flink run -d SentimentAnalysisFlink-1.0-SNAPSHOT.jar ~/scripts/conf/sa.properties $FILE_CLOUD $PROCESS"
+fi	
+
+echo
+if [ $PROCESS -ne 0 ]; then
+echo "Starting Edgent Application"	
+	ssh $GATEWAY "sudo nohup java -jar sentiment-analysis-1.0-SNAPSHOT-jar-with-dependencies.jar ~/scripts/conf/sa.properties $FILE_GATEWAY $PROCESS >> out.log &"
+fi
+
+
+sleep 5
+
+echo
+echo "Starting Tweets Publication Application"
+if [ $PROCESS -ne 0 ]; then
+	fab monitor.twitterMQTT --host $SOURCE
+else
+	fab monitor.twitterKafka --host $SOURCE
+fi
+

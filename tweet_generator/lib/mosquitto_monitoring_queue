@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+	echo "Fill the main folder and file"
+	exit
+else
+	##echo "Source IP: $1"
+	FILE_OUT=$1
+fi
+
+mosquitto_sub -h 10.0.0.1 -p 8883 -v -t '$SYS/broker/#' -u mqtt -P mqtt >> $FILE_OUT

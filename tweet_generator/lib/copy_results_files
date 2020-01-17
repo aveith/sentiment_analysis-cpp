@@ -1,0 +1,65 @@
+#!/bin/sh
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	##echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	##echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	##echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Result folder is missing"
+	exit
+else
+	##echo "Result folder: $4"
+	FOLDER_RESULTS=$4
+fi
+
+if [ ! "$5" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $5"
+	GATEWAY_ROUTING=$5
+fi
+
+if [ "$6" ]; then	
+	SLAVE1_FLINK=$6
+fi
+
+echo
+echo "Moving log files"
+
+echo
+ssh $CLOUD "mv ~/flink-1.2.0/log/* $FOLDER_RESULTS"
+ssh $CLOUD "mv ~/kafka_2.10-0.10.2.0/logs/* $FOLDER_RESULTS"
+
+ssh $SLAVE1_FLINK "mv ~/flink-1.2.0/log/* $FOLDER_RESULTS"
+
+ssh $GATEWAY "sudo mv /var/log/mosquitto/mosquitto.log  $FOLDER_RESULTS"
+
+
+for MACHINE in $SOURCE $GATEWAY $CLOUD $SLAVE1_FLINK $GATEWAY_ROUTING; do
+	ssh $MACHINE "cp ~/scripts/conf/sa.properties $FOLDER_RESULTS"
+	ssh $MACHINE "cp ~/scripts/conf/workload.ini $FOLDER_RESULTS"
+	ssh $MACHINE "mv ~/scripts/log/* $FOLDER_RESULTS"
+	ssh $MACHINE "mv ~/*.out $FOLDER_RESULTS"
+	ssh $MACHINE "mv ~/*.log $FOLDER_RESULTS"
+done
+

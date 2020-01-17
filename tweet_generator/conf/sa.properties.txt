@@ -1,0 +1,28 @@
+# MQTT subscriber configuration
+mqtt.serverURLs=tcp://10.0.0.1:8883
+mqtt.topic=mqtt
+mqtt.userName=mqtt
+mqtt.password=mqtt
+#mqtt.trustStore=
+#mqtt.trustStorePassword=
+#mqtt.keyStore=
+#mqtt.keyStorePassword=
+
+# Kafka publisher configuration
+# zookeeper.connect is for a kafka producer
+#kafka.zookeeper.connect=10.0.1.2:2181
+#group.id=
+kafka.retries=3
+kafka.topic=mqtt
+kafka.sink.topic=sink-kafka
+kafka.bootstrap.servers=10.0.1.2:9092
+kafka.acks=1
+kafka.batch.size=1684
+kafka.auto.commit.interval.ms=100
+kafka.linger.ms=1
+kafka.key.serializer=org.apache.kafka.common.serialization.StringSerializer
+kafka.value.serializer=org.apache.kafka.common.serialization.StringSerializer
+kafka.key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+kafka.value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+kafka.auto.commit.enable=true
+

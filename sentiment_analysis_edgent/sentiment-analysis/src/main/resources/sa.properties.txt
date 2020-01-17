@@ -1,0 +1,31 @@
+# MQTT subscriber configuration
+mqtt.serverURLs=tcp://140.77.13.109:8883
+mqtt.topic=mqtt
+mqtt.userName=mqtt
+mqtt.password=mqtt
+#mqtt.trustStore=
+#mqtt.trustStorePassword=
+#mqtt.keyStore=
+#mqtt.keyStorePassword=
+
+# Kafka publisher configuration
+# zookeeper.connect is for a kafka producer
+kafka.zookeeper.connect=140.77.13.94:2181
+#group.id=
+kafka.topic=mqtt
+kafka.sink.topic=sink-kafka
+kafka.bootstrap.servers=140.77.13.94:9092
+kafka.bootstrap.acks=all
+kadka.batch.size=1
+kafka.auto.commit.interval.ms=1000
+kafka.linger.ms=0
+kafka.key.serializer=org.apache.kafka.common.serialization.StringSerializer
+kafka.value.serializer=org.apache.kafka.common.serialization.StringSerializer
+kafka.key.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+kafka.value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+kafka.auto.commit.enable=true
+
+# Operators which will run at the Edge
+edge.operators=5
+
+

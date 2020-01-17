@@ -1,0 +1,31 @@
+#!/bin/sh
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	##echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	##echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	##echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+echo
+echo "Copyin configuration files"
+
+for MACHINE in $SOURCE $GATEWAY $CLOUD $SLAVE1_FLINK; do
+	scp ~/scripts/conf/sa.properties $MACHINE:~/scripts/conf/
+done

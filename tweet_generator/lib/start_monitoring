@@ -1,0 +1,47 @@
+#!/bin/sh
+if [ ! "$1" ]; then
+	echo "Fill the source user@IP"
+	exit
+else
+	##echo "Source IP: $1"
+	SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+	echo "Fill the gateway user@IP"
+	exit
+else
+	##echo "Gateway IP: $2"
+	GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+	echo "Fill the cloud user@IP"
+	exit
+else
+	##echo "Cloud IP: $3"
+	CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $4"
+	GATEWAY_ROUTING=$4
+fi
+
+if [ "$5" ]; then	
+	SLAVE1_FLINK=$5
+fi
+
+
+echo
+echo "Starting the monitoring"
+
+for MACHINE in $SOURCE $GATEWAY $GATEWAY_ROUTING $CLOUD $SLAVE1_FLINK; do
+	echo
+	fab monitor.monitor --host $MACHINE
+done
+
+

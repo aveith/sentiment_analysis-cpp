@@ -1,0 +1,84 @@
+#!/bin/sh
+
+if [ ! "$1" ]; then
+        echo "Fill the source user@IP"
+        exit
+else
+        echo "Source IP: $1"
+        SOURCE=$1
+fi
+
+if [ ! "$2" ]; then
+        echo "Fill the gateway user@IP"
+        exit
+else
+        echo "Gateway IP: $2"
+        GATEWAY=$2
+fi
+
+if [ ! "$3" ]; then
+        echo "Fill the cloud user@IP"
+        exit
+else
+        echo "Cloud IP: $3"
+        CLOUD=$3
+fi
+
+if [ ! "$4" ]; then
+        echo "Execution name is missing"
+        exit
+else
+#       echo "Time of execution: $4"
+        NAME=$4
+fi
+
+if [ ! "$5" ]; then
+        echo "Network bandwidth is missing (kbps)"
+        exit
+else
+#       echo "Network bandwidth: $5"
+        NETWORK=$5
+fi
+
+if [ ! "$6" ]; then
+	echo "Gateway routing is missing"
+	exit
+else
+#	echo "Time of execution: $6"
+	GATEWAY_ROUTING=$6
+fi
+
+if [ ! "$7" ]; then
+        echo "Flink Slave 1 is missing"
+        exit
+else
+#       echo "Network bandwidth: $7"
+        FLINK_SLAVE1=$7
+fi
+
+SERVER_DIR="$HOME""/""$NAME""_""$NETWORK""/"
+echo "SERVER_DIR = $SERVER_DIR"
+mkdir $SERVER_DIR
+
+for MACHINE in $SOURCE $GATEWAY $CLOUD $FLINK_SLAVE1 $GATEWAY_ROUTING; do
+	echo
+	echo "Compressing files"
+	FILE="$NAME""_""$MACHINE"".tar.gz"
+	ssh $MACHINE "tar -czvf $FILE ~/$NAME/"
+
+	echo
+	echo "Copying files to the server"
+	scp $MACHINE:~/$FILE $SERVER_DIR
+
+	echo
+	echo "Removing rule of Network Bandwidth in the interface eth1  and eth2"
+	ssh $MACHINE "sudo wondershaper clear eth1"
+	ssh $MACHINE "sudo wondershaper clear eth2"
+
+        echo
+	echo "Removing rule of Network Bandwidth in the interface eth1 and eth2"
+	ssh $MACHINE "sudo tc qdisc del dev eth1 root"
+	ssh $MACHINE "sudo tc qdisc del dev eth2 root"
+done
+
+

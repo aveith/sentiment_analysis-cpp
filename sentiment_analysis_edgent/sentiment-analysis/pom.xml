@@ -1,0 +1,241 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>fr.inria.sentiment_analysis</groupId>
+  <artifactId>sentiment-analysis</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>sentiment-analysis</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+      <mainClass>fr.inria.sentiment_analysis.App</mainClass>
+      <log4jVersion>2.8.2</log4jVersion>
+      <!--<gsonVersion>2.8.2</gsonVersion>-->
+      <junitVersion>4.12</junitVersion>
+      <!--<jettyVersion>9.4.7.v20170914</jettyVersion>-->
+      <edgent.runtime.platform/> <!-- set by -Platform-* -->
+      <edgent.runtime.groupId>org.apache.edgent${edgent.runtime.platform}</edgent.runtime.groupId>
+      <edgent.runtime.version>1.2.0</edgent.runtime.version>
+
+      <java.version>1.8</java.version>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.reporting.outputencoding>UTF-8</project.reporting.outputencoding>
+      <maven.version>3.3.1</maven.version>
+
+      <jetty.version>9.3.6.v20151106</jetty.version>
+      <gson.version>2.2.4</gson.version>
+      <slf4j.version>1.7.12</slf4j.version>
+  </properties>
+
+  <build>
+     <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>${mainClass}</mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <!--
+          In the examples we want this lib to be included,
+          so we change the scope from 'provided' to 'compile'.
+    -->
+    <dependency>
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-api</artifactId>
+       <version>${slf4j.version}</version>
+       <scope>compile</scope>
+    </dependency>
+
+    <!-- an SLF4J runtime implementation to use -->
+    <dependency>
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-jdk14</artifactId>
+       <version>${slf4j.version}</version>
+       <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+       <version>${junitVersion}</version>
+       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+       <groupId>org.apache.logging.log4j</groupId>
+       <artifactId>log4j-slf4j-impl</artifactId>
+       <version>${log4jVersion}</version>
+    </dependency>
+
+    <dependency>
+       <groupId>org.apache.logging.log4j</groupId>
+       <artifactId>log4j-core</artifactId>
+       <version>${log4jVersion}</version>
+    </dependency>
+
+    <dependency>
+       <groupId>org.apache.commons</groupId>
+       <artifactId>commons-lang3</artifactId>
+       <version>3.6</version>
+    </dependency>
+
+    <dependency>
+       <groupId>com.jsoniter</groupId>
+       <artifactId>jsoniter</artifactId>
+       <version>0.9.20</version>
+    </dependency>
+<!--
+    <dependency>
+       <groupId>com.google.code.gson</groupId>
+       <artifactId>gson</artifactId>
+       <version>${gsonVersion}</version>
+    </dependency>
+-->
+    <!-- Edgent dependencies -->
+
+    <dependency>
+       <groupId>${edgent.runtime.groupId}</groupId>
+       <artifactId>edgent-providers-direct</artifactId>
+       <version>${edgent.runtime.version}</version>
+    </dependency>
+
+
+    <dependency>
+       <groupId>${edgent.runtime.groupId}</groupId>
+       <artifactId>edgent-providers-development</artifactId>
+       <version>${edgent.runtime.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-utils-streamscope</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-utils-metrics</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-runtime-jsoncontrol</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+-->
+      <!--
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-runtime-jobregistry</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-runtime-appservice</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-runtime-etiao</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-runtime-jmxcontrol</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-api-function</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-api-oplet</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-api-execution</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-api-graph</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+    -->
+<!--
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-connectors-common</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-api-topology</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-spi-graph</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-spi-topology</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${edgent.runtime.groupId}</groupId>
+      <artifactId>edgent-console-server</artifactId>
+      <version>${edgent.runtime.version}</version>
+    </dependency>
+-->
+  </dependencies>
+</project>
+

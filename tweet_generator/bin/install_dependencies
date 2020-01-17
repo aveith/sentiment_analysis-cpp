@@ -1,0 +1,16 @@
+#!/bin/bash
+
+TEMP_DIR=/tmp/librdkafka
+REPO_LIBKAFKA=https://github.com/edenhill/librdkafka.git
+CURR_DIR=`pwd`
+
+apt install python-dev python3-openssl python-openssl
+git clone $REPO_LIBKAFKA $TEMP_DIR
+
+cd $TEMP_DIR
+./configure --prefix=/usr
+make
+make install
+cd $CURR_DIR
+
+pip install -r dev-requirements.txt

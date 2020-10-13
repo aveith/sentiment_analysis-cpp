@@ -12,7 +12,7 @@
       <mainClass>fr.inria.sentiment_analysis.App</mainClass>
       <log4jVersion>2.8.2</log4jVersion>
       <!--<gsonVersion>2.8.2</gsonVersion>-->
-      <junitVersion>4.12</junitVersion>
+      <junitVersion>4.13.1</junitVersion>
       <!--<jettyVersion>9.4.7.v20170914</jettyVersion>-->
       <edgent.runtime.platform/> <!-- set by -Platform-* -->
       <edgent.runtime.groupId>org.apache.edgent${edgent.runtime.platform}</edgent.runtime.groupId>
